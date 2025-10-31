@@ -23,28 +23,14 @@ export async function injectUI(): Promise<void> {
 
     // --- 2. Create UI Elements ---
     const container: HTMLDivElement = document.createElement('div');
-    container.style.cssText = `
-        margin-top: 1.5rem;
-        padding: 1.5rem;
-        border: none;
-        border-radius: 12px;
-        background-color: #fff;
-        box-shadow: 0 2px 8px 0 rgba(0,0,0,0.12);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    `;
+    container.className = 'eval-panel-container'; // 👈 CHANGED
 
     const title: HTMLHeadingElement = document.createElement('h3');
     title.textContent = 'Panel de Auto-Evaluación';
-    title.style.cssText = `
-        margin-top: 0; 
-        margin-bottom: 1.5rem; 
-        font-size: 1.25rem; 
-        font-weight: 500;
-        color: #202124;
-    `;
+    title.className = 'eval-panel-title'; // 👈 CHANGED
 
     const buttonContainer: HTMLDivElement = document.createElement('div');
-    buttonContainer.style.cssText = 'display: flex; flex-wrap: wrap; justify-content: flex-start;';
+    buttonContainer.className = 'eval-button-container'; // 👈 CHANGED
 
     // --- Score Panel (assign to module state) ---
     scorePanel = document.createElement('ul');
@@ -52,22 +38,22 @@ export async function injectUI(): Promise<void> {
 
 
     // --- 3. Define Buttons & Dropdown ---
-    const G_GREEN: string = '#34A853';
+    const G_GREEN_CLASS: string = 'eval-btn--filled-green'; // 👈 CHANGED
 
     // Create the Button Group Wrapper
     const buttonGroup: HTMLDivElement = document.createElement('div');
     buttonGroup.className = 'eval-btn-group';
 
     // --- Button for preferred strategy ---
-    const btnPreferred = createButton('Cargando...', 'filled', G_GREEN, () => {
+    const btnPreferred = createButton('Cargando...', 'filled', G_GREEN_CLASS, () => { // 👈 CHANGED
         runEvaluation(preferredStrategy);
     });
     btnPreferred.id = 'auto-eval-preferred-btn';
 
     // --- Toggle Button ---
-    const btnToggle = createButton('\u25BC', 'filled', G_GREEN); // \u25BC is ▼
+    const btnToggle = createButton('\u25BC', 'filled', G_GREEN_CLASS); // 👈 CHANGED
     btnToggle.id = 'auto-eval-toggle-btn';
-    btnToggle.style.fontFamily = 'sans-serif'; // Ensure arrow renders well
+    btnToggle.style.fontFamily = 'sans-serif'; // (This one is ok, fonts are tricky)
 
     // --- Dropdown Menu (assign to module state) ---
     dropdownMenu = document.createElement('div');
@@ -179,29 +165,34 @@ function toggleDropdown(): void {
     dropdownMenu.classList.toggle('show');
 }
 
-function hexToRgba(hex: string, alpha: number): string {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+// 👈 REMOVED hexToRgba function
 
-function createButton(text: string, type: ButtonType, color: string, onClick?: (e: MouseEvent) => void): HTMLButtonElement {
+/**
+ * Creates a button with the specified styles and click handler.
+ * @param text The text to display on the button
+ * @param type The style type ('filled' or 'outlined')
+ * @param colorClass An optional CSS class to apply for color (e.g., 'eval-btn--filled-green')
+ * @param onClick An optional click event handler
+ * @returns {HTMLButtonElement} The created button element
+ */
+function createButton(text: string, type: ButtonType, colorClass: string = '', onClick?: (e: MouseEvent) => void): HTMLButtonElement { // 👈 CHANGED
     const button: HTMLButtonElement = document.createElement('button');
     button.textContent = text;
     button.type = 'button';
 
     button.classList.add('eval-btn');
 
+    // Add color class if provided
+    if (colorClass) {
+        button.classList.add(colorClass);
+    }
+
     if (type === 'filled') {
         button.classList.add('eval-btn--filled');
-        button.style.setProperty('--color-main', color);
-
     } else { // 'outlined'
         button.classList.add('eval-btn--outlined');
-        button.style.setProperty('--color-main', color);
-        button.style.setProperty('--color-hover', hexToRgba(color, 0.08));
-        button.style.setProperty('--color-active', hexToRgba(color, 0.15));
+        // Note: The 'outlined' style in your CSS doesn't use --color-main,
+        // but if it did, the 'eval-btn--filled-green' class would set it.
     }
 
     if (onClick) {

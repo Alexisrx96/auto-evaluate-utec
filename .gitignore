@@ -3,6 +3,7 @@
 
 # Build output
 /dist
+auto-evaluate-utec.zip
 
 # IDE and editor directories
 .vscode/

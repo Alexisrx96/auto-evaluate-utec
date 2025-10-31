@@ -6,11 +6,13 @@
     "build:dev": "esbuild src/content.ts src/popup.ts --bundle --outdir=dist --target=es2020 && esbuild src/styles.css --bundle --outfile=dist/styles.css",
     "build": "esbuild src/content.ts src/popup.ts --bundle --outdir=dist --target=es2020 --minify && esbuild src/styles.css --bundle --outfile=dist/styles.css --minify",
     "watch": "npm run build:dev -- --watch",
-    "package": "npm run build && zip -r auto-evaluate-utec.zip dist manifest.json popup.html popup.css icon*.png"
+    "package": "npm run build && node zip.js"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.268",
-    "esbuild": "^0.20.2",
-    "typescript": "^5.4.5"
+    "@types/chrome": "==0.0.268",
+    "esbuild": "==0.20.2",
+    "glob": "==11.0.3",
+    "jszip": "==3.10.1",
+    "typescript": "==5.4.5"
   }
 }
