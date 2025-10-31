@@ -2,7 +2,7 @@
 import { Strategy } from "./types";
 
 /**
- * Mapa para convertir los valores de las opciones de <select> a un puntaje numérico.
+ * A map to convert the values of the <select> options to a numeric score.
  */
 const scoreMap: Record<string, number> = {
     '508': 4,
@@ -35,29 +35,47 @@ export function autoEvaluate(strategy: Strategy, scorePanel: HTMLUListElement): 
 
     // --- 1. Fill Questions ---
     selects.forEach((select: HTMLSelectElement) => {
-        if (select.multiple) return;
-
         const options: HTMLOptionElement[] = Array.from(select.options)
             .filter((o: HTMLOptionElement) => !o.disabled && o.value !== '');
 
         if (!options.length) return;
 
-        let optionToSelect: HTMLOptionElement;
-        switch (strategy) {
-            case 'first':
-                optionToSelect = options[0];
-                break;
-            case 'last':
-                optionToSelect = options[options.length - 1];
-                break;
-            case 'random':
-                optionToSelect = options[Math.floor(Math.random() * options.length)];
-                break;
-            default:
-                optionToSelect = options[0];
+        if (select.multiple) {
+            // --- Handle Multiple Select ---
+            // 1. Deselect all currently selected options
+            options.forEach(o => o.selected = false);
+
+            // 2. Determine how many options to select (from 1 to max)
+            const maxToSelect = options.length;
+            const numToSelect = Math.floor(Math.random() * maxToSelect) + 1; // 1 to max
+
+            // 3. Randomly select that many options
+            // Use a shuffled copy of the options array
+            const shuffledOptions = [...options].sort(() => 0.5 - Math.random());
+
+            for (let i = 0; i < numToSelect; i++) {
+                shuffledOptions[i].selected = true;
+            }
+
+        } else {
+            // --- Handle Single Select ---
+            let optionToSelect: HTMLOptionElement;
+            switch (strategy) {
+                case 'first':
+                    optionToSelect = options[0];
+                    break;
+                case 'last':
+                    optionToSelect = options[options.length - 1];
+                    break;
+                case 'random':
+                    optionToSelect = options[Math.floor(Math.random() * options.length)];
+                    break;
+                default:
+                    optionToSelect = options[0];
+            }
+            select.value = optionToSelect.value;
         }
 
-        select.value = optionToSelect.value;
         select.dispatchEvent(new Event('change', { bubbles: true }));
         questionsFilledCount++;
     });
@@ -84,7 +102,7 @@ export function autoEvaluate(strategy: Strategy, scorePanel: HTMLUListElement): 
         let questionsCount: number = 0;
 
         questions.forEach((q: HTMLSelectElement) => {
-            const selectedValue: string = q.value; // Obtener el valor que acabamos de setear
+            const selectedValue: string = q.value;
             if (selectedValue && scoreMap[selectedValue] !== undefined) {
                 totalScore += scoreMap[selectedValue];
                 questionsCount++;
