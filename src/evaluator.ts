@@ -40,6 +40,9 @@ export function autoEvaluate(strategy: Strategy, scorePanel: HTMLUListElement): 
 
         if (!options.length) return;
 
+        // --- 1a. Deselect all currently selected options ---
+        options.forEach(o => o.selected = false);
+
         if (select.multiple) {
             // --- Handle Multiple Select ---
             // 1. Deselect all currently selected options

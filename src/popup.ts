@@ -16,7 +16,9 @@ function saveOptions(e: Event): void {
     const selectedStrategy = formData.get('strategy') as Strategy;
 
     if (!selectedStrategy) {
-        statusElement.textContent = 'Por favor, selecciona una opción.';
+        if (statusElement) {
+            statusElement.textContent = 'Por favor, selecciona una opción.';
+        }
         return;
     }
 
@@ -24,11 +26,12 @@ function saveOptions(e: Event): void {
         preferredStrategy: selectedStrategy
     }, () => {
         // Update status to let user know options were saved.
-        statusElement.textContent = '¡Preferencia guardada!';
-        saveButton.textContent = 'Guardado';
+        if (statusElement) statusElement.textContent = '¡Preferencia guardada!';
+        if (saveButton) saveButton.textContent = 'Guardado';
+
         setTimeout(() => {
-            statusElement.textContent = '';
-            saveButton.textContent = 'Guardar';
+            if (statusElement) statusElement.textContent = '';
+            if (saveButton) saveButton.textContent = 'Guardar';
         }, 1500);
     });
 }
@@ -42,12 +45,19 @@ function restoreOptions(): void {
         preferredStrategy: 'random'
     }, (items) => {
         const preferredStrategy = items.preferredStrategy as Strategy;
-        const radio = form.querySelector(`input[value="${preferredStrategy}"]`) as HTMLInputElement;
-        if (radio) {
-            radio.checked = true;
+        if (form) {
+            const radio = form.querySelector(`input[value="${preferredStrategy}"]`) as HTMLInputElement;
+            if (radio) {
+                radio.checked = true;
+            }
         }
     });
 }
 
-document.addEventListener('DOMContentLoaded', restoreOptions);
-form.addEventListener('submit', saveOptions);
+// Add null checks before adding listeners
+if (form) {
+    document.addEventListener('DOMContentLoaded', restoreOptions);
+    form.addEventListener('submit', saveOptions);
+} else {
+    console.error('Auto-Evaluator Popup: Could not find strategyForm.');
+}

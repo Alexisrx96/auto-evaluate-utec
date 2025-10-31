@@ -1,6 +1,5 @@
 // src/ui.ts
 import { ButtonType, Strategy } from "./types";
-import { injectStyles } from "./styles";
 import { loadStrategy, listenForStrategyChanges } from "./storage";
 import { autoEvaluate } from "./evaluator";
 
@@ -22,10 +21,7 @@ export async function injectUI(): Promise<void> {
         return;
     }
 
-    // --- 2. Inject Styles ---
-    injectStyles();
-
-    // --- 3. Create UI Elements ---
+    // --- 2. Create UI Elements ---
     const container: HTMLDivElement = document.createElement('div');
     container.style.cssText = `
         margin-top: 1.5rem;
@@ -55,7 +51,7 @@ export async function injectUI(): Promise<void> {
     scorePanel.id = 'auto-eval-logs';
 
 
-    // --- 4. Define Buttons & Dropdown ---
+    // --- 3. Define Buttons & Dropdown ---
     const G_GREEN: string = '#34A853';
 
     // Create the Button Group Wrapper
@@ -100,7 +96,7 @@ export async function injectUI(): Promise<void> {
         dropdownMenu.appendChild(item);
     });
 
-    // --- 5. Add Event Listeners ---
+    // --- 4. Add Event Listeners ---
     btnToggle.addEventListener('click', (e: MouseEvent) => {
         e.preventDefault();
         e.stopPropagation(); // Stop click from bubbling to document
@@ -114,7 +110,7 @@ export async function injectUI(): Promise<void> {
         }
     });
 
-    // --- 6. Assemble and Inject UI ---
+    // --- 5. Assemble and Inject UI ---
     container.appendChild(title);
     buttonGroup.appendChild(btnPreferred);
     buttonGroup.appendChild(btnToggle);
@@ -125,7 +121,7 @@ export async function injectUI(): Promise<void> {
 
     header.insertAdjacentElement('afterend', container);
 
-    // --- 7. Load Initial State & Listen for Changes ---
+    // --- 6. Load Initial State & Listen for Changes ---
     preferredStrategy = await loadStrategy();
     console.log('Auto-Evaluator: Preferred strategy loaded:', preferredStrategy);
     updatePreferredButtonText(preferredStrategy);

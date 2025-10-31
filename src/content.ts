@@ -5,8 +5,12 @@ import { injectUI } from "./ui";
  * Main function to run the auto-evaluator.
  */
 function main(): void {
-    console.log('Auto-Evaluator: Initializing...');
-    injectUI();
+    try {
+        console.log('Auto-Evaluator: Initializing...');
+        injectUI();
+    } catch (error) {
+        console.error('Auto-Evaluator: Failed to initialize UI.', error);
+    }
 }
 
 // --- DOM Ready Execution ---
@@ -15,4 +19,3 @@ if (document.readyState === 'loading') {
 } else {
     main();
 }
-
