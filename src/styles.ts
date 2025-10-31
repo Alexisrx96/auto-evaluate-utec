@@ -1,0 +1,147 @@
+// src/styles.ts
+
+/** Injects all necessary styles for the evaluation tools */
+export function injectStyles(): void {
+    const styleId: string = 'auto-eval-styles';
+    if (document.getElementById(styleId)) return;
+
+    const cssRules: string = `
+        .eval-btn {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 2px solid transparent;
+            border-radius: 4px; /* Default radius */
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            /* Added 'filter' for tactile feedback */
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+            height: 40.8px; /* Consistent height */
+            box-sizing: border-box; /* Include border/padding in height */
+            vertical-align: top;
+        }
+        
+        /* --- 'Filled' Style --- */
+        .eval-btn--filled {
+            background-color: var(--color-main);
+            color: white;
+            box-shadow: 0 2px 4px 0 rgba(0,0,0,0.1);
+        }
+        .eval-btn--filled:hover:not(:disabled) {
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.15);
+            filter: brightness(0.95); /* Tactile feedback */
+        }
+        .eval-btn--filled:active:not(:disabled) {
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.1);
+            filter: brightness(0.90); /* Tactile feedback */
+        }
+        
+        /* --- Disabled State --- */
+        .eval-btn:disabled {
+            opacity: 0.5;
+            cursor: wait;
+            box-shadow: none;
+        }
+        
+
+        /* --- Button Group Styles --- */
+        .eval-btn-group {
+            position: relative; /* For dropdown positioning */
+            display: inline-flex; /* To keep buttons together */
+        }
+        
+        /* Main button */
+        .eval-btn-group > .eval-btn:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        /* Dropdown button */
+        .eval-btn-group > .eval-btn:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-left: 1px solid rgba(255, 255, 255, 0.35); /* Subtle divider */
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Toggle button */
+        .eval-btn-group > #auto-eval-toggle-btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        /* --- Dropdown Menu Styles --- */
+        .eval-dropdown-menu {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 100%; /* Position below the button group */
+            right: 0;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px 0 rgba(0,0,0,0.15);
+            border: 1px solid #dadce0;
+            z-index: 1000;
+            margin-top: 4px;
+            min-width: 160px;
+            padding: 4px 0;
+        }
+        .eval-dropdown-menu.show {
+            display: block;
+        }
+
+        .eval-dropdown-menu-item {
+            display: block;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            color: #3c4043;
+            text-decoration: none;
+            text-transform: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .eval-dropdown-menu-item:hover {
+            background-color: #f1f3f4;
+        }
+
+        /* Active state for dropdown item */
+        .eval-dropdown-menu-item--active {
+            font-weight: 600; 
+            color: #34A853; /* Use your primary color */
+        }
+        .eval-dropdown-menu-item--active::before {
+            content: '\\2713\\00a0'; /* Checkmark + non-breaking space */
+            font-family: sans-serif;
+        }
+
+        /* --- Score panel styles --- */
+        #auto-eval-logs {
+            margin-top: 1.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #3c4043;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            list-style-type: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: none; /* Hidden by default */
+            line-height: 1.6;
+        }
+        #auto-eval-logs pre {
+            margin: 0;
+            font-family: inherit;
+            white-space: pre-wrap; /* Respetar saltos de línea */
+        }
+    `;
+
+    const styleSheet: HTMLStyleElement = document.createElement('style');
+    styleSheet.id = styleId;
+    styleSheet.textContent = cssRules;
+    document.head.appendChild(styleSheet);
+}
