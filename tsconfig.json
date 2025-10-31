@@ -1,0 +1,24 @@
+// tsconfig.json
+{
+    "compilerOptions": {
+        /* Basic Options */
+        "target": "ES2020",
+        "lib": [
+            "DOM",
+            "ES2020"
+        ],
+        "outDir": "./dist",
+        "rootDir": "./src",
+        /* Module Resolution */
+        "module": "ES2020",
+        "moduleResolution": "node", // Add this line
+        "esModuleInterop": true,
+        /* Strict Type-Checking */
+        "strict": true,
+        /* Advanced */
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": [
+        "src/**/*"
+    ]
+}

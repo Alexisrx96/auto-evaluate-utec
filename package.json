@@ -1,0 +1,14 @@
+{
+  "name": "auto-evaluate-utec",
+  "version": "1.0.0",
+  "description": "Chrome extension to auto-evaluate UTEC portal",
+  "scripts": {
+    "build": "esbuild src/content.ts src/popup.ts --bundle --outdir=dist --target=es2020",
+    "watch": "esbuild src/content.ts src/popup.ts --bundle --outdir=dist --target=es2020 --watch"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.5"
+  }
+}
