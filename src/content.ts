@@ -1,7 +1,5 @@
+// src/content.ts
 import { ButtonType, Strategy } from "./types";
-
-
-
 
 // --- State for saved strategy ---
 /**
@@ -9,6 +7,27 @@ import { ButtonType, Strategy } from "./types";
  * Defaults to 'random'.
  */
 let preferredStrategy: Strategy = 'random';
+
+/**
+ * Mapa para convertir los valores de las opciones de <select> a un puntaje numérico.
+ * "Siempre" (508) = 4
+ * "Casi siempre" (509) = 3
+ * "A veces" (510) = 2
+ * "Casi nunca" (511) = 1
+ * "Nunca" (512) = 0
+ * "Si" (525) = 4 (Respuesta positiva)
+ * "No" (526) = 0 (Respuesta negativa)
+ */
+const scoreMap: Record<string, number> = {
+    '508': 4,
+    '509': 3,
+    '510': 2,
+    '511': 1,
+    '512': 0,
+    '525': 4,
+    '526': 0,
+};
+const MAX_SCORE_PER_QUESTION: number = 4;
 
 
 /**
@@ -138,6 +157,28 @@ function insertEvaluationTools(): void {
                 content: '\\2713\\00a0'; /* Checkmark + non-breaking space */
                 font-family: sans-serif;
             }
+
+            /* --- Score panel styles --- */
+            #auto-eval-logs {
+                margin-top: 1.5rem;
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                color: #3c4043;
+                max-height: 400px;
+                overflow-y: auto;
+                background-color: #f8f9fa;
+                border: 1px solid #dadce0;
+                border-radius: 8px;
+                list-style-type: none;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                display: none; /* Hidden by default */
+                line-height: 1.6;
+            }
+            #auto-eval-logs pre {
+                margin: 0;
+                font-family: inherit;
+                white-space: pre-wrap; /* Respetar saltos de línea */
+            }
         `;
 
         const styleSheet: HTMLStyleElement = document.createElement('style');
@@ -180,22 +221,9 @@ function insertEvaluationTools(): void {
     const buttonContainer: HTMLDivElement = document.createElement('div');
     buttonContainer.style.cssText = 'display: flex; flex-wrap: wrap; justify-content: flex-start;';
 
-    const logList: HTMLUListElement = document.createElement('ul');
-    logList.style.cssText = `
-        margin-top: 1.5rem;
-        padding: 0.75rem 1rem;
-        font-size: 0.85rem;
-        color: #3c4043;
-        max-height: 200px;
-        overflow-y: auto;
-        background-color: #f8f9fa;
-        border: 1px solid #dadce0;
-        border-radius: 8px;
-        list-style-type: none;
-        font-family: "Roboto Mono", monospace;
-        display: none; /* Hidden by default */
-    `;
-    logList.id = 'auto-eval-logs';
+    // --- Score Panel ---
+    const scorePanel: HTMLUListElement = document.createElement('ul');
+    scorePanel.id = 'auto-eval-logs'; // Mantenemos el ID para consistencia
 
 
     // --- 3. Helper Functions ---
@@ -230,7 +258,6 @@ function insertEvaluationTools(): void {
                 e.preventDefault();
                 setButtonsDisabled(true);
                 onClick(e);
-                setTimeout(() => setButtonsDisabled(false), 100);
             });
         }
 
@@ -245,18 +272,26 @@ function insertEvaluationTools(): void {
         });
     }
 
+    /**
+     * Fill out the form and calculate the scores.
+     */
     function autoEvaluate(strategy: Strategy = 'first'): void {
-        logList.innerHTML = '';
-        logList.style.display = 'block';
+        scorePanel.innerHTML = '';
+        scorePanel.style.display = 'block';
+
         const selects: NodeListOf<HTMLSelectElement> = document.querySelectorAll('select.browser-default');
-        let count: number = 0;
+        let questionsFilledCount: number = 0;
 
         if (selects.length === 0) {
-            logList.innerHTML = '<li>No questions (selects) found.</li>';
+            scorePanel.innerHTML = '<pre>No se encontraron preguntas (selects).</pre>';
+            setButtonsDisabled(false);
             return;
         }
 
+        // --- 1. Fill Questions ---
         selects.forEach((select: HTMLSelectElement) => {
+            if (select.multiple) return;
+
             const options: HTMLOptionElement[] = Array.from(select.options)
                 .filter((o: HTMLOptionElement) => !o.disabled && o.value !== '');
 
@@ -279,21 +314,68 @@ function insertEvaluationTools(): void {
 
             select.value = optionToSelect.value;
             select.dispatchEvent(new Event('change', { bubbles: true }));
-
-            const li: HTMLLIElement = document.createElement('li');
-            li.textContent = `Selected: "${optionToSelect.text}"`;
-            li.style.padding = '0.25rem 0';
-            logList.appendChild(li);
-            count++;
+            questionsFilledCount++;
         });
 
+
+        // --- 2. Calculate Scores ---
+        scorePanel.innerHTML = '<pre><strong>Puntajes por Sección (basado en la evaluación aplicada):</strong>\n\n</pre>';
+
+        const sectionScores: string[] = [];
+        const sections: NodeListOf<HTMLDivElement> = document.querySelectorAll('div.grupos-preguntas > h3');
+
+        sections.forEach((sectionTitleEl: HTMLHeadingElement) => {
+            const sectionTitle: string = sectionTitleEl.textContent?.trim() || 'Sección Desconocida';
+            const sectionContainer: HTMLDivElement | null = sectionTitleEl.closest('.grupos-preguntas');
+
+            if (!sectionContainer) return;
+
+            // Find all questions in this section
+            const questions: NodeListOf<HTMLSelectElement> = sectionContainer.querySelectorAll(
+                'select.browser-default:not([multiple])'
+            );
+
+            let totalScore: number = 0;
+            let questionsCount: number = 0;
+
+            questions.forEach((q: HTMLSelectElement) => {
+                const selectedValue: string = q.value; // Obtener el valor que acabamos de setear
+                if (selectedValue && scoreMap[selectedValue] !== undefined) {
+                    totalScore += scoreMap[selectedValue];
+                    questionsCount++;
+                }
+            });
+
+            if (questionsCount > 0) {
+                const maxPossibleScore: number = questionsCount * MAX_SCORE_PER_QUESTION;
+                const percentage: number = Math.round((totalScore / maxPossibleScore) * 100);
+                const scoreText = `${sectionTitle}: ${percentage}% (${totalScore}/${maxPossibleScore})`;
+                sectionScores.push(scoreText);
+            }
+        });
+
+        // --- 3. Show Scores ---
+        const logPreElement = scorePanel.querySelector('pre');
+        if (sectionScores.length > 0 && logPreElement) {
+            logPreElement.innerHTML += sectionScores.join('\n');
+        } else if (logPreElement) {
+            logPreElement.innerHTML = '<pre>No se pudieron calcular los puntajes.</pre>';
+        }
+
+        // --- 4. Add Summary ---
         const summary: HTMLLIElement = document.createElement('li');
-        summary.style.fontWeight = 'bold';
-        summary.style.marginTop = '0.5rem';
-        summary.style.paddingTop = '0.5rem';
-        summary.style.borderTop = `1px solid ${hexToRgba('#3c4043', 0.2)}`;
-        summary.textContent = `Total: ${count} selections completed.`;
-        logList.appendChild(summary);
+        summary.style.cssText = `
+            font-weight: bold;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid ${hexToRgba('#3c4043', 0.2)};
+            list-style: none;
+        `;
+        summary.textContent = `Total: ${questionsFilledCount} preguntas completadas.`;
+        scorePanel.appendChild(summary);
+
+
+        setTimeout(() => setButtonsDisabled(false), 100); // Re-habilitar
     }
 
     // --- 4. Define Buttons & NEW Dropdown ---
@@ -339,10 +421,7 @@ function insertEvaluationTools(): void {
 
             autoEvaluate(strat.value); // Run evaluation
             dropdownMenu.classList.remove('show'); // Hide menu
-
-            setTimeout(() => {
-                setButtonsDisabled(false);
-            }, 200);
+            // setButtonsDisabled(false) se llama dentro de autoEvaluate
         });
         dropdownMenu.appendChild(item);
     });
@@ -386,7 +465,7 @@ function insertEvaluationTools(): void {
     buttonContainer.appendChild(buttonGroup);
 
     container.appendChild(buttonContainer);
-    container.appendChild(logList);
+    container.appendChild(scorePanel);
 
     header.insertAdjacentElement('afterend', container);
 }
