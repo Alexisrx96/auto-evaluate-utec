@@ -1,13 +1,10 @@
 // src/types.ts
+import { STRATEGY_DEFINITIONS } from "./strategy.config";
 
-/** Defines the valid evaluation strategies */
-export type Strategy = 'first' | 'last' | 'random' | 'smart';
+/** * Defines the valid evaluation strategies.
+ * This type is dynamically generated from strategy.config.ts.
+ */
+export type Strategy = typeof STRATEGY_DEFINITIONS[number]['id'];
 
 /** Defines the valid button style types */
 export type ButtonType = 'filled' | 'outlined';
-
-/**
- * Defines the "interface" for a selection strategy function.
- * It takes an array of options and returns the one to select.
- */
-export type SelectionStrategy = (options: HTMLOptionElement[]) => HTMLOptionElement;

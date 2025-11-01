@@ -1,13 +1,15 @@
 // src/storage.ts
 import { Strategy } from "./types";
+import { getDefaultStrategyId } from "./strategy.config";
 
 /**
- * Loads the preferred strategy from storage, defaulting to 'random'.
+ * Loads the preferred strategy from storage
  */
 export async function loadStrategy(): Promise<Strategy> {
+    const defaultStrategy = getDefaultStrategyId();
     return new Promise((resolve) => {
         chrome.storage.sync.get({
-            preferredStrategy: 'random'
+            preferredStrategy: defaultStrategy
         }, (items) => {
             resolve(items.preferredStrategy as Strategy);
         });
